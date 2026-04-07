@@ -10,7 +10,7 @@ out/
 .env
 .env.local
 .env.production
-.env.development
+
 
 # IDE and editor files
 .DS_Store
