@@ -15,6 +15,13 @@ const SUGGESTED = [
   "Talk to a human",
 ];
 
+type Message = {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+  timestamp?: number;
+};
+
 export default function ChatBox() {
   const { token } = useContext(AuthContext);
   const { messages, addMessage, activeSessionId } = useChat();
@@ -119,7 +126,7 @@ export default function ChatBox() {
           )}
 
           {/* Messages */}
-          {messages.map(m => (
+          {messages.map((m: Message) => (
             <MessageBubble
               key={m.id}
               role={m.role}
@@ -172,12 +179,12 @@ export default function ChatBox() {
       <div className={`px-4 pb-4 pt-2 flex-shrink-0 ${dark ? "bg-gradient-to-t from-slate-950 via-slate-950/90 to-transparent" : "bg-gradient-to-t from-slate-50 via-slate-50/90 to-transparent"}`}>
         <div
           className={`flex items-end gap-2.5 px-3 py-2.5 rounded-2xl transition-all duration-200 ${focused
-              ? dark
-                ? "bg-slate-800 border border-emerald-500/50 shadow-[0_0_0_3px_rgba(52,211,153,0.08)]"
-                : "bg-white border border-emerald-400/60 shadow-[0_0_0_3px_rgba(16,185,129,0.08)]"
-              : dark
-                ? "bg-slate-800/70 border border-slate-700"
-                : "bg-white border border-slate-200 shadow-sm"
+            ? dark
+              ? "bg-slate-800 border border-emerald-500/50 shadow-[0_0_0_3px_rgba(52,211,153,0.08)]"
+              : "bg-white border border-emerald-400/60 shadow-[0_0_0_3px_rgba(16,185,129,0.08)]"
+            : dark
+              ? "bg-slate-800/70 border border-slate-700"
+              : "bg-white border border-slate-200 shadow-sm"
             }`}
         >
           <textarea
@@ -198,8 +205,8 @@ export default function ChatBox() {
             disabled={!input.trim() || loading}
             title="Send (Enter)"
             className={`w-9 h-9 rounded-[10px] flex-shrink-0 flex items-center justify-center border-none cursor-pointer transition-all duration-150 bg-gradient-to-br from-emerald-500 to-teal-600 ${!input.trim() || loading
-                ? "opacity-30 cursor-not-allowed"
-                : "opacity-100 hover:scale-105 hover:shadow-[0_3px_14px_rgba(16,185,129,0.5)] active:scale-95"
+              ? "opacity-30 cursor-not-allowed"
+              : "opacity-100 hover:scale-105 hover:shadow-[0_3px_14px_rgba(16,185,129,0.5)] active:scale-95"
               }`}
           >
             <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
