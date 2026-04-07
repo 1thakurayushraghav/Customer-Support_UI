@@ -8,58 +8,92 @@ import { useTheme } from "@/context/ThemeContext";
 import { AuthContext } from "@/context/AuthContext";
 import { useChat } from "@/context/ChatHistoryContext";
 
+type Session = {
+  id: string;
+  title: string;
+  updatedAt: string;
+};
+
 /* ─── Icons ─────────────────────────────────────── */
 const Icon = {
   Sun: () => (
     <svg width="15" height="15" viewBox="0 0 20 20" fill="none">
-      <circle cx="10" cy="10" r="3.5" stroke="currentColor" strokeWidth="1.5"/>
-      <path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.22 4.22l1.42 1.42M14.36 14.36l1.42 1.42M4.22 15.78l1.42-1.42M14.36 5.64l1.42-1.42" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+      <circle cx="10" cy="10" r="3.5" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.22 4.22l1.42 1.42M14.36 14.36l1.42 1.42M4.22 15.78l1.42-1.42M14.36 5.64l1.42-1.42" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
     </svg>
   ),
   Moon: () => (
     <svg width="15" height="15" viewBox="0 0 20 20" fill="none">
-      <path d="M17.5 11.5A7.5 7.5 0 118.5 2.5a5.5 5.5 0 009 9z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M17.5 11.5A7.5 7.5 0 118.5 2.5a5.5 5.5 0 009 9z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   ),
   Plus: () => (
     <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
-      <path d="M7 2v10M2 7h10" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+      <path d="M7 2v10M2 7h10" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
     </svg>
   ),
   Trash: () => (
     <svg width="11" height="11" viewBox="0 0 14 14" fill="none">
-      <path d="M2 3.5h10M5.5 3.5V2.5a.5.5 0 01.5-.5h2a.5.5 0 01.5.5v1M11.5 3.5l-.8 8a.5.5 0 01-.5.5H3.8a.5.5 0 01-.5-.5l-.8-8" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M2 3.5h10M5.5 3.5V2.5a.5.5 0 01.5-.5h2a.5.5 0 01.5.5v1M11.5 3.5l-.8 8a.5.5 0 01-.5.5H3.8a.5.5 0 01-.5-.5l-.8-8" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   ),
   Menu: () => (
     <svg width="17" height="17" viewBox="0 0 18 18" fill="none">
-      <path d="M3 5h12M3 9h12M3 13h12" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
+      <path d="M3 5h12M3 9h12M3 13h12" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
     </svg>
   ),
   Chat: () => (
     <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
-      <path d="M2 2.5h10a.5.5 0 01.5.5v6.5a.5.5 0 01-.5.5H8l-2 2-2-2H2a.5.5 0 01-.5-.5V3a.5.5 0 01.5-.5z" stroke="currentColor" strokeWidth="1.2"/>
+      <path d="M2 2.5h10a.5.5 0 01.5.5v6.5a.5.5 0 01-.5.5H8l-2 2-2-2H2a.5.5 0 01-.5-.5V3a.5.5 0 01.5-.5z" stroke="currentColor" strokeWidth="1.2" />
     </svg>
   ),
   Logout: () => (
     <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-      <path d="M6 2H3a1 1 0 00-1 1v10a1 1 0 001 1h3M11 11l3-3-3-3M14 8H6" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M6 2H3a1 1 0 00-1 1v10a1 1 0 001 1h3M11 11l3-3-3-3M14 8H6" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   ),
 };
 
 /* ─── Sidebar ────────────────────────────────────── */
 function Sidebar({ open, onClose, dark }: { open: boolean; onClose: () => void; dark: boolean }) {
-  const { sessions, activeSessionId, newSession, switchSession, deleteSession } = useChat();
+  const {
+    sessions,
+    activeSessionId,
+    newSession,
+    switchSession,
+    deleteSession
+  } = useChat() as {
+    sessions: Session[];
+    activeSessionId: string;
+    newSession: () => void;
+    switchSession: (id: string) => void;
+    deleteSession: (id: string) => void;
+  };
   const { logout } = useContext(AuthContext);
   const router = useRouter();
 
   const now = Date.now();
   const DAY = 86_400_000;
+
+  // helper (clean code)
+  const getTime = (date: string) => new Date(date).getTime();
+
   const groups = [
-    { label: "Today",     items: sessions.filter(s => now - s.updatedAt < DAY) },
-    { label: "This week", items: sessions.filter(s => now - s.updatedAt >= DAY && now - s.updatedAt < 7 * DAY) },
-    { label: "Older",     items: sessions.filter(s => now - s.updatedAt >= 7 * DAY) },
+    {
+      label: "Today",
+      items: sessions.filter(s => now - getTime(s.updatedAt) < DAY),
+    },
+    {
+      label: "This week",
+      items: sessions.filter(s => {
+        const diff = now - getTime(s.updatedAt);
+        return diff >= DAY && diff < 7 * DAY;
+      }),
+    },
+    {
+      label: "Older",
+      items: sessions.filter(s => now - getTime(s.updatedAt) >= 7 * DAY),
+    },
   ].filter(g => g.items.length > 0);
 
   return (
@@ -117,15 +151,14 @@ function Sidebar({ open, onClose, dark }: { open: boolean; onClose: () => void; 
                     <div key={session.id} className="relative flex sidebar-item-wrap">
                       <button
                         onClick={() => { switchSession(session.id); onClose(); }}
-                        className={`flex-1 flex items-center gap-2 px-2.5 py-2 rounded-lg text-left min-w-0 transition-all duration-150 ${
-                          active
-                            ? dark
-                              ? "bg-emerald-500/12 border border-emerald-500/20 text-emerald-400"
-                              : "bg-emerald-50 border border-emerald-200 text-emerald-700"
-                            : dark
-                              ? "text-slate-400 hover:bg-slate-800 border border-transparent"
-                              : "text-slate-500 hover:bg-slate-100 border border-transparent"
-                        }`}
+                        className={`flex-1 flex items-center gap-2 px-2.5 py-2 rounded-lg text-left min-w-0 transition-all duration-150 ${active
+                          ? dark
+                            ? "bg-emerald-500/12 border border-emerald-500/20 text-emerald-400"
+                            : "bg-emerald-50 border border-emerald-200 text-emerald-700"
+                          : dark
+                            ? "text-slate-400 hover:bg-slate-800 border border-transparent"
+                            : "text-slate-500 hover:bg-slate-100 border border-transparent"
+                          }`}
                       >
                         <span className="opacity-60 flex-shrink-0"><Icon.Chat /></span>
                         <span className={`text-[13px] truncate flex-1 min-w-0 ${active ? "font-medium" : "font-normal"}`}>
@@ -207,9 +240,9 @@ export default function ChatPage() {
             <div className="flex items-center gap-2.5">
               <div className="w-[34px] h-[34px] rounded-[10px] flex-shrink-0 flex items-center justify-center bg-gradient-to-br from-emerald-500 to-teal-600 shadow-[0_3px_14px_rgba(16,185,129,0.4)]">
                 <svg width="17" height="17" viewBox="0 0 16 16" fill="none">
-                  <circle cx="8" cy="8" r="7" stroke="white" strokeWidth="1.2"/>
-                  <path d="M4 8c0-2.21 1.79-4 4-4s4 1.79 4 4" stroke="white" strokeWidth="1.4" strokeLinecap="round"/>
-                  <circle cx="8" cy="8" r="1.5" fill="white"/>
+                  <circle cx="8" cy="8" r="7" stroke="white" strokeWidth="1.2" />
+                  <path d="M4 8c0-2.21 1.79-4 4-4s4 1.79 4 4" stroke="white" strokeWidth="1.4" strokeLinecap="round" />
+                  <circle cx="8" cy="8" r="1.5" fill="white" />
                 </svg>
               </div>
               <div>
@@ -229,7 +262,7 @@ export default function ChatPage() {
             {/* Badge */}
             <div className={`hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs border ${dark ? "bg-amber-500/8 border-amber-500/20 text-slate-400" : "bg-amber-50 border-amber-200 text-slate-500"}`}>
               <svg width="11" height="11" viewBox="0 0 12 12" fill="none">
-                <path d="M6 1l1.35 2.73 3.01.44-2.18 2.12.51 3-2.69-1.42L3.31 9.29l.51-3L1.64 4.17l3.01-.44z" fill="#fbbf24"/>
+                <path d="M6 1l1.35 2.73 3.01.44-2.18 2.12.51 3-2.69-1.42L3.31 9.29l.51-3L1.64 4.17l3.01-.44z" fill="#fbbf24" />
               </svg>
               <span className="font-medium">AI Support</span>
             </div>
