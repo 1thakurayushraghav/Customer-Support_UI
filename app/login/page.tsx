@@ -13,7 +13,7 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  
+
   // Alert states for success & error messages (professional toast-style)
   const [alert, setAlert] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
@@ -43,13 +43,13 @@ export default function Login() {
 
       // Store role for admin panel redirection
       localStorage.setItem("role", res.data.role);
-      
+
       // Show success alert before navigation
       showAlert("success", `Welcome back, ${res.data.user?.name || "User"}! Redirecting...`);
 
       // Determine destination
       const destination = res.data.role === "admin" ? "/admin/dashboard" : "/chat";
-      
+
       // Small delay to ensure alert is visible before navigation
       setTimeout(() => {
         router.push(destination);
@@ -62,7 +62,7 @@ export default function Login() {
     } finally {
       // Only reset loading if we didn't navigate (error case)
       // For success, loading stays true until navigation happens
-      if (!alert?.type === "success") {
+      if (alert?.type !== "success") {
         setLoading(false);
       }
     }
@@ -95,8 +95,8 @@ export default function Login() {
             className={`
               pointer-events-auto backdrop-blur-xl rounded-2xl shadow-2xl p-4 flex items-start gap-3 
               animate-in slide-in-from-top-5 fade-in duration-300
-              ${alert.type === "success" 
-                ? "bg-emerald-500/15 border border-emerald-500/30 text-emerald-100" 
+              ${alert.type === "success"
+                ? "bg-emerald-500/15 border border-emerald-500/30 text-emerald-100"
                 : "bg-rose-500/15 border border-rose-500/30 text-rose-100"}
             `}
           >
