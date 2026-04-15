@@ -1,4 +1,3 @@
-// app/login/page.tsx
 "use client";
 
 import { useState, useContext } from "react";
@@ -14,31 +13,73 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  
+  // Alert states for success & error messages (professional toast-style)
+  const [alert, setAlert] = useState<{ type: "success" | "error"; message: string } | null>(null);
+
+  const showAlert = (type: "success" | "error", message: string) => {
+    setAlert({ type, message });
+    // Auto-dismiss after 4 seconds
+    setTimeout(() => setAlert(null), 4000);
+  };
 
   const handleLogin = async () => {
+    // Basic validation
+    if (!email.trim()) {
+      showAlert("error", "Email address is required");
+      return;
+    }
+    if (!password.trim()) {
+      showAlert("error", "Password is required");
+      return;
+    }
+
     setLoading(true);
     try {
       const res = await api.post("/auth/login", { email, password });
-      login(res.data.token);
-      router.push("/chat");
-    } finally {
+
+      // Save token & user data in context
+      login(res.data.token, res.data.user);
+
+      // Store role for admin panel redirection
+      localStorage.setItem("role", res.data.role);
+      
+      // Show success alert before navigation
+      showAlert("success", `Welcome back, ${res.data.user?.name || "User"}! Redirecting...`);
+
+      // Determine destination
+      const destination = res.data.role === "admin" ? "/admin/dashboard" : "/chat";
+      
+      // Small delay to ensure alert is visible before navigation
+      setTimeout(() => {
+        router.push(destination);
+      }, 800);
+
+    } catch (err: any) {
+      const errorMessage = err?.response?.data?.message || "Invalid email or password. Please try again.";
+      showAlert("error", errorMessage);
       setLoading(false);
+    } finally {
+      // Only reset loading if we didn't navigate (error case)
+      // For success, loading stays true until navigation happens
+      if (!alert?.type === "success") {
+        setLoading(false);
+      }
     }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") handleLogin();
+    if (e.key === "Enter" && !loading) handleLogin();
   };
 
   return (
     <div className="relative min-h-screen bg-slate-950 flex items-center justify-center px-4 overflow-hidden">
-
-      {/* Orbs */}
-      <div className="absolute top-[-150px] left-[-100px] w-[500px] h-[500px] rounded-full bg-emerald-500/12 blur-[100px] pointer-events-none" />
-      <div className="absolute bottom-[-80px] right-[-60px] w-[400px] h-[400px] rounded-full bg-teal-500/10 blur-[80px] pointer-events-none" />
+      {/* Animated gradient orbs */}
+      <div className="absolute top-[-150px] left-[-100px] w-[500px] h-[500px] rounded-full bg-emerald-500/12 blur-[100px] pointer-events-none animate-pulse" style={{ animationDuration: "8s" }} />
+      <div className="absolute bottom-[-80px] right-[-60px] w-[400px] h-[400px] rounded-full bg-teal-500/10 blur-[80px] pointer-events-none animate-pulse" style={{ animationDuration: "10s", animationDelay: "1s" }} />
       <div className="absolute top-1/2 right-1/4 w-[300px] h-[300px] rounded-full bg-cyan-500/6 blur-[90px] pointer-events-none" />
 
-      {/* Dot grid */}
+      {/* Dot grid background */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
@@ -47,10 +88,45 @@ export default function Login() {
         }}
       />
 
-      {/* Card */}
-      <div className="relative z-10 w-full max-w-[420px] bg-slate-900/60 backdrop-blur-2xl border border-slate-700/60 rounded-3xl p-8 sm:p-10 shadow-[0_0_0_1px_rgba(52,211,153,0.08),0_24px_64px_rgba(0,0,0,0.6)]">
+      {/* Toast / Alert Container - Professional positioning */}
+      <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 w-full max-w-sm px-4 pointer-events-none">
+        {alert && (
+          <div
+            className={`
+              pointer-events-auto backdrop-blur-xl rounded-2xl shadow-2xl p-4 flex items-start gap-3 
+              animate-in slide-in-from-top-5 fade-in duration-300
+              ${alert.type === "success" 
+                ? "bg-emerald-500/15 border border-emerald-500/30 text-emerald-100" 
+                : "bg-rose-500/15 border border-rose-500/30 text-rose-100"}
+            `}
+          >
+            <div className="flex-shrink-0 mt-0.5">
+              {alert.type === "success" ? (
+                <svg className="w-5 h-5 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+              ) : (
+                <svg className="w-5 h-5 text-rose-400" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
+              )}
+            </div>
+            <div className="flex-1 text-sm font-medium leading-relaxed">{alert.message}</div>
+            <button
+              onClick={() => setAlert(null)}
+              className="flex-shrink-0 text-slate-400 hover:text-white transition-colors"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        )}
+      </div>
 
-        {/* Icon */}
+      {/* Login Card */}
+      <div className="relative z-10 w-full max-w-[420px] bg-slate-900/60 backdrop-blur-2xl border border-slate-700/60 rounded-3xl p-8 sm:p-10 shadow-[0_0_0_1px_rgba(52,211,153,0.08),0_24px_64px_rgba(0,0,0,0.6)]">
+        {/* Brand Icon */}
         <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-emerald-500/12 border border-emerald-500/25 mb-6">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
             <circle cx="12" cy="12" r="10" stroke="#34d399" strokeWidth="1.5" />
@@ -69,7 +145,7 @@ export default function Login() {
           </p>
         </div>
 
-        {/* Fields */}
+        {/* Form Fields */}
         <div className="space-y-4">
           {/* Email */}
           <div>
@@ -87,7 +163,8 @@ export default function Login() {
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 onKeyDown={handleKeyDown}
-                className="w-full bg-slate-800/60 border border-slate-700/80 rounded-xl pl-10 pr-4 py-3 text-sm text-white/90 placeholder-slate-500 outline-none focus:border-emerald-500/60 focus:bg-emerald-500/5 focus:ring-2 focus:ring-emerald-500/10 transition-all duration-200"
+                disabled={loading}
+                className="w-full bg-slate-800/60 border border-slate-700/80 rounded-xl pl-10 pr-4 py-3 text-sm text-white/90 placeholder-slate-500 outline-none focus:border-emerald-500/60 focus:bg-emerald-500/5 focus:ring-2 focus:ring-emerald-500/10 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
               />
             </div>
           </div>
@@ -109,12 +186,14 @@ export default function Login() {
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 onKeyDown={handleKeyDown}
-                className="w-full bg-slate-800/60 border border-slate-700/80 rounded-xl pl-10 pr-10 py-3 text-sm text-white/90 placeholder-slate-500 outline-none focus:border-emerald-500/60 focus:bg-emerald-500/5 focus:ring-2 focus:ring-emerald-500/10 transition-all duration-200"
+                disabled={loading}
+                className="w-full bg-slate-800/60 border border-slate-700/80 rounded-xl pl-10 pr-10 py-3 text-sm text-white/90 placeholder-slate-500 outline-none focus:border-emerald-500/60 focus:bg-emerald-500/5 focus:ring-2 focus:ring-emerald-500/10 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
+                disabled={loading}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors disabled:opacity-40"
               >
                 {showPassword ? (
                   <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
@@ -133,17 +212,20 @@ export default function Login() {
           </div>
         </div>
 
-        {/* Submit */}
+        {/* Submit Button with professional loading state */}
         <button
           onClick={handleLogin}
           disabled={loading}
-          className="mt-6 w-full flex items-center justify-center gap-2 py-3.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-semibold text-sm shadow-[0_4px_24px_rgba(16,185,129,0.3)] hover:shadow-[0_8px_32px_rgba(16,185,129,0.45)] hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+          className="mt-6 w-full flex items-center justify-center gap-2 py-3.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-semibold text-sm shadow-[0_4px_24px_rgba(16,185,129,0.3)] hover:shadow-[0_8px_32px_rgba(16,185,129,0.45)] hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 disabled:opacity-80 disabled:cursor-not-allowed disabled:transform-none"
         >
           {loading ? (
-            <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
-              <circle cx="12" cy="12" r="10" stroke="rgba(255,255,255,0.3)" strokeWidth="3" />
-              <path d="M12 2a10 10 0 0110 10" stroke="white" strokeWidth="3" strokeLinecap="round" />
-            </svg>
+            <>
+              <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="12" r="10" stroke="rgba(255,255,255,0.3)" strokeWidth="3" />
+                <path d="M12 2a10 10 0 0110 10" stroke="white" strokeWidth="3" strokeLinecap="round" />
+              </svg>
+              <span>Authenticating...</span>
+            </>
           ) : (
             <>
               Sign in
@@ -154,7 +236,7 @@ export default function Login() {
           )}
         </button>
 
-        {/* Footer */}
+        {/* Register Link */}
         <p className="mt-5 text-center text-xs text-slate-500">
           Don&apos;t have an account?{" "}
           <Link href="/register" className="text-emerald-400 hover:text-emerald-300 font-semibold transition-colors">
@@ -162,6 +244,23 @@ export default function Login() {
           </Link>
         </p>
       </div>
+
+      {/* CSS for animations (Tailwind might not have slide-in by default) */}
+      <style jsx>{`
+        @keyframes slideInFromTop {
+          from {
+            opacity: 0;
+            transform: translateY(-1rem);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        .animate-in {
+          animation: slideInFromTop 0.2s ease-out forwards;
+        }
+      `}</style>
     </div>
   );
 }

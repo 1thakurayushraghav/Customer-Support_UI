@@ -1,4 +1,5 @@
-// components/ChatBox.tsx
+// components/ChatBox.tsx - Complete updated version
+
 "use client";
 
 import { useContext, useRef, useEffect, useState, useCallback } from "react";
@@ -24,7 +25,7 @@ type Message = {
 
 export default function ChatBox() {
   const { token } = useContext(AuthContext);
-  const { messages, addMessage, activeSessionId } = useChat();
+  const { messages, addMessage, activeSessionId, refreshSessions, newSession } = useChat();
   const { theme } = useTheme();
   const dark = theme === "dark";
 
@@ -37,12 +38,11 @@ export default function ChatBox() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
-  const firstRender = useRef(true);
 
+  // Auto-scroll to bottom when messages change
   useEffect(() => {
-    firstRender.current = true;
-    bottomRef.current?.scrollIntoView({ behavior: "auto" });
-  }, [activeSessionId]);
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
   const sendMessage = useCallback(async () => {
     const trimmed = input.trim();
@@ -52,6 +52,22 @@ export default function ChatBox() {
     setInput("");
     if (inputRef.current) inputRef.current.style.height = "auto";
 
+    // If no active session, create one first
+    let currentSessionId = activeSessionId;
+    if (!currentSessionId) {
+      console.log("No active session, creating new one...");
+
+      const newId = await newSession();   // ✅ directly get id
+
+      if (!newId) {
+        console.error("❌ Failed to create new session");
+        setError("Unable to start new chat. Please try again.");
+        return;
+      }
+
+      currentSessionId = newId; // ✅ correct assignment
+    }
+
     const userMsg = addMessage({ role: "user", content: trimmed });
     setNewMsgIds(prev => new Set(prev).add(userMsg.id));
     setLoading(true);
@@ -59,19 +75,31 @@ export default function ChatBox() {
     try {
       const res = await api.post(
         "/chat",
-        { message: trimmed },
+        {
+          message: trimmed,
+          conversationId: currentSessionId
+        },
         { headers: { Authorization: `Bearer ${token}` } }
       );
+
       const aiMsg = addMessage({ role: "assistant", content: res.data.reply });
       setNewMsgIds(prev => new Set(prev).add(aiMsg.id));
-    } catch {
-      setError("Something went wrong. Please try again.");
-      const errMsg = addMessage({ role: "assistant", content: "Sorry, I couldn't process that. Please try again." });
+
+      // Refresh sessions to update conversation title
+      await refreshSessions();
+
+    } catch (err: any) {
+      console.error("Chat error:", err);
+      setError(err.response?.data?.error || "Something went wrong. Please try again.");
+      const errMsg = addMessage({
+        role: "assistant",
+        content: "Sorry, I couldn't process that. Please try again."
+      });
       setNewMsgIds(prev => new Set(prev).add(errMsg.id));
     } finally {
       setLoading(false);
     }
-  }, [input, loading, token, addMessage]);
+  }, [input, loading, token, addMessage, activeSessionId, newSession, refreshSessions]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -86,12 +114,17 @@ export default function ChatBox() {
     e.target.style.height = Math.min(e.target.scrollHeight, 140) + "px";
   };
 
+  const handleSuggestedClick = (suggestion: string) => {
+    setInput(suggestion);
+    inputRef.current?.focus();
+  };
+
   const isEmpty = messages.length === 0;
 
   return (
     <div className="h-full grid grid-rows-[1fr_auto] overflow-hidden min-h-0">
 
-      {/* ── MESSAGES ── */}
+      {/* MESSAGES */}
       <div ref={scrollRef} className="min-h-0 overflow-y-auto overflow-x-hidden scroll-smooth">
         <div className="p-6 pb-4 flex flex-col gap-4">
 
@@ -115,7 +148,7 @@ export default function ChatBox() {
                 {SUGGESTED.map(s => (
                   <button
                     key={s}
-                    onClick={() => { setInput(s); inputRef.current?.focus(); }}
+                    onClick={() => handleSuggestedClick(s)}
                     className={`px-3.5 py-1.5 rounded-full text-[13px] font-medium cursor-pointer transition-all duration-150 ${dark ? "bg-slate-800 border border-slate-700 text-slate-400 hover:bg-emerald-500/10 hover:border-emerald-500/30 hover:text-emerald-400" : "bg-white border border-slate-200 text-slate-500 hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-700"}`}
                   >
                     {s}
@@ -175,7 +208,7 @@ export default function ChatBox() {
         </div>
       </div>
 
-      {/* ── INPUT BAR ── */}
+      {/* INPUT BAR */}
       <div className={`px-4 pb-4 pt-2 flex-shrink-0 ${dark ? "bg-gradient-to-t from-slate-950 via-slate-950/90 to-transparent" : "bg-gradient-to-t from-slate-50 via-slate-50/90 to-transparent"}`}>
         <div
           className={`flex items-end gap-2.5 px-3 py-2.5 rounded-2xl transition-all duration-200 ${focused
