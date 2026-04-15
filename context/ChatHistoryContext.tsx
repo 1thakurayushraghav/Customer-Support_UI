@@ -23,7 +23,7 @@ interface ChatContextType {
   activeSessionId: string | null;
   messages: Message[];
   addMessage: (msg: Omit<Message, "id" | "timestamp">) => Message;
-  newSession: () => Promise<void>;
+  newSession: () => Promise<string | null>;
   switchSession: (id: string) => Promise<void>;
   deleteSession: (id: string) => Promise<void>;
   loading: boolean;
