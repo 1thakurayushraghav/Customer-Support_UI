@@ -50,7 +50,7 @@ export default function AnalyticsPage() {
   const [exportFormat, setExportFormat] = useState<"json" | "csv" | "pdf">("json");
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [selectedMetric, setSelectedMetric] = useState<any>(null);
-  
+
   const modalRef = useRef<HTMLDivElement>(null);
 
   // Prevent body scroll when modals are open
@@ -84,7 +84,7 @@ export default function AnalyticsPage() {
       const res = await api.get("/analytics", {
         params: { range: timeRange }
       });
-      
+
       const safeData = {
         totalConversations: res.data?.totalConversations || 0,
         activeConversations: res.data?.activeConversations || 0,
@@ -99,7 +99,7 @@ export default function AnalyticsPage() {
         popularCategories: res.data?.popularCategories || [],
         usageByHour: res.data?.usageByHour || []
       };
-      
+
       setData(safeData);
     } catch (err: any) {
       console.error("Failed to fetch analytics:", err);
@@ -110,7 +110,7 @@ export default function AnalyticsPage() {
       } else {
         setError(err.response?.data?.error || "Failed to fetch analytics data");
       }
-      
+
       setData({
         totalConversations: 0,
         activeConversations: 0,
@@ -148,10 +148,10 @@ export default function AnalyticsPage() {
 
   const exportToCSV = () => {
     const csvRows: string[] = [];
-    
+
     // Headers
     csvRows.push(['Metric', 'Value'].join(','));
-    
+
     // Add data
     if (data) {
       csvRows.push([`Total Conversations`, data.totalConversations || 0].join(','));
@@ -159,20 +159,20 @@ export default function AnalyticsPage() {
       csvRows.push([`Escalated to Human`, data.escalated || 0].join(','));
       csvRows.push([`AI Responses`, data.aiResponses || 0].join(','));
       csvRows.push([`Training Responses`, data.trainingResponses || 0].join(','));
-      
+
       if (data.satisfaction) {
         csvRows.push([`Positive Satisfaction`, data.satisfaction.positive || 0].join(','));
         csvRows.push([`Neutral Satisfaction`, data.satisfaction.neutral || 0].join(','));
         csvRows.push([`Negative Satisfaction`, data.satisfaction.negative || 0].join(','));
       }
-      
+
       if (data.responseTime) {
         csvRows.push([`Avg Response Time (s)`, data.responseTime.avg || 0].join(','));
         csvRows.push([`Min Response Time (s)`, data.responseTime.min || 0].join(','));
         csvRows.push([`Max Response Time (s)`, data.responseTime.max || 0].join(','));
       }
     }
-    
+
     const blob = new Blob([csvRows.join('\n')], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -240,7 +240,7 @@ export default function AnalyticsPage() {
     };
 
     return (
-      <div 
+      <div
         onClick={onClick}
         className="bg-slate-900 border border-slate-800 rounded-xl p-4 hover:border-slate-700 transition cursor-pointer hover:scale-105 transform transition-all duration-200"
       >
@@ -263,14 +263,17 @@ export default function AnalyticsPage() {
       emerald: "bg-emerald-500",
       purple: "bg-purple-500",
       orange: "bg-orange-500"
-    };
+    } as const; // Add 'as const' to make the type more specific
+
+    // Type assertion to ensure color is a valid key
+    const colorClass = colorClasses[color as keyof typeof colorClasses];
 
     return (
       <div>
         <p className="text-sm mb-1">{label}</p>
         <div className="w-full bg-slate-800 h-8 rounded overflow-hidden">
           <div
-            className={`${colorClasses[color]} h-8 rounded transition-all flex items-center justify-end px-2 text-xs font-semibold`}
+            className={`${colorClass} h-8 rounded transition-all flex items-center justify-end px-2 text-xs font-semibold`}
             style={{ width: `${percent}%` }}
           >
             {percent > 15 && `${Math.round(percent)}%`}
@@ -285,7 +288,7 @@ export default function AnalyticsPage() {
 
   const MetricCard = ({ title, value, icon, color, onClick }: any) => {
     return (
-      <div 
+      <div
         onClick={onClick}
         className="bg-slate-900 border border-slate-800 rounded-xl p-4 text-center hover:border-slate-700 transition cursor-pointer hover:scale-105 transform transition-all duration-200"
       >
@@ -322,7 +325,7 @@ export default function AnalyticsPage() {
       <div className="p-4 md:p-6 text-white">
         <div className="bg-red-500/20 border border-red-500 rounded-lg p-4">
           <p className="text-red-400 text-sm md:text-base">{error}</p>
-          <button 
+          <button
             onClick={fetchAnalytics}
             className="mt-3 px-4 py-2 bg-red-500 rounded-lg hover:bg-red-600 transition text-sm md:text-base"
           >
@@ -337,7 +340,7 @@ export default function AnalyticsPage() {
     return (
       <div className="p-4 md:p-6 text-white text-center">
         <p className="text-slate-400">No analytics data available</p>
-        <button 
+        <button
           onClick={fetchAnalytics}
           className="mt-4 px-4 py-2 bg-emerald-500 rounded-lg hover:bg-emerald-600 transition"
         >
@@ -351,18 +354,18 @@ export default function AnalyticsPage() {
   const trainingPercent = totalResponses
     ? Math.round(((data.trainingResponses || 0) / totalResponses) * 100)
     : 0;
-  
-  const satisfactionScore = (data.satisfaction?.positive || 0) + 
-                           (data.satisfaction?.neutral || 0) + 
-                           (data.satisfaction?.negative || 0);
-  const positivePercent = satisfactionScore 
-    ? Math.round(((data.satisfaction?.positive || 0) / satisfactionScore) * 100) 
+
+  const satisfactionScore = (data.satisfaction?.positive || 0) +
+    (data.satisfaction?.neutral || 0) +
+    (data.satisfaction?.negative || 0);
+  const positivePercent = satisfactionScore
+    ? Math.round(((data.satisfaction?.positive || 0) / satisfactionScore) * 100)
     : 0;
 
   const maxDailyMessages = data.dailyMessages && data.dailyMessages.length > 0
     ? Math.max(...data.dailyMessages.map(d => d.count), 1)
     : 1;
-    
+
   const maxHourlyUsage = data.usageByHour && data.usageByHour.length > 0
     ? Math.max(...data.usageByHour.map(h => h.count), 1)
     : 1;
@@ -376,41 +379,38 @@ export default function AnalyticsPage() {
           <h1 className="text-xl md:text-2xl font-bold">📊 Analytics Dashboard</h1>
           <p className="text-xs md:text-sm text-slate-400 mt-1">Track your AI performance metrics</p>
         </div>
-        
+
         <div className="flex flex-wrap gap-2">
           <div className="flex gap-1 bg-slate-900 rounded-lg p-1 border border-slate-800">
             <button
               onClick={() => setTimeRange("7days")}
-              className={`px-3 md:px-4 py-1.5 md:py-2 rounded-lg transition text-sm ${
-                timeRange === "7days" 
-                  ? "bg-emerald-500 text-white" 
+              className={`px-3 md:px-4 py-1.5 md:py-2 rounded-lg transition text-sm ${timeRange === "7days"
+                  ? "bg-emerald-500 text-white"
                   : "text-slate-400 hover:text-white"
-              }`}
+                }`}
             >
               7 Days
             </button>
             <button
               onClick={() => setTimeRange("30days")}
-              className={`px-3 md:px-4 py-1.5 md:py-2 rounded-lg transition text-sm ${
-                timeRange === "30days" 
-                  ? "bg-emerald-500 text-white" 
+              className={`px-3 md:px-4 py-1.5 md:py-2 rounded-lg transition text-sm ${timeRange === "30days"
+                  ? "bg-emerald-500 text-white"
                   : "text-slate-400 hover:text-white"
-              }`}
+                }`}
             >
               30 Days
             </button>
             <button
               onClick={() => setTimeRange("all")}
-              className={`px-3 md:px-4 py-1.5 md:py-2 rounded-lg transition text-sm ${
-                timeRange === "all" 
-                  ? "bg-emerald-500 text-white" 
+              className={`px-3 md:px-4 py-1.5 md:py-2 rounded-lg transition text-sm ${timeRange === "all"
+                  ? "bg-emerald-500 text-white"
                   : "text-slate-400 hover:text-white"
-              }`}
+                }`}
             >
               All Time
             </button>
           </div>
-          
+
           <button
             onClick={() => setShowExportModal(true)}
             className="px-3 md:px-4 py-1.5 md:py-2 bg-slate-800 rounded-lg hover:bg-slate-700 transition flex items-center gap-2 text-sm"
@@ -422,30 +422,30 @@ export default function AnalyticsPage() {
 
       {/* STATS CARDS - Grid System */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-        <StatCard 
-          title="Total Conversations" 
-          value={(data.totalConversations || 0).toLocaleString()} 
+        <StatCard
+          title="Total Conversations"
+          value={(data.totalConversations || 0).toLocaleString()}
           icon="💬"
           color="blue"
           onClick={() => showMetricDetails({ total: data.totalConversations }, "Total Conversations")}
         />
-        <StatCard 
-          title="Active Conversations" 
-          value={(data.activeConversations || 0).toLocaleString()} 
+        <StatCard
+          title="Active Conversations"
+          value={(data.activeConversations || 0).toLocaleString()}
           icon="🟢"
           color="green"
           onClick={() => showMetricDetails({ active: data.activeConversations }, "Active Conversations")}
         />
-        <StatCard 
-          title="Escalated to Human" 
-          value={(data.escalated || 0).toLocaleString()} 
+        <StatCard
+          title="Escalated to Human"
+          value={(data.escalated || 0).toLocaleString()}
           icon="⚠️"
           color="red"
           onClick={() => showMetricDetails({ escalated: data.escalated }, "Escalated Conversations")}
         />
-        <StatCard 
-          title="Training Usage" 
-          value={`${trainingPercent}%`} 
+        <StatCard
+          title="Training Usage"
+          value={`${trainingPercent}%`}
           icon="📚"
           color="purple"
           subtitle={`${(data.trainingResponses || 0).toLocaleString()} of ${totalResponses.toLocaleString()} responses`}
@@ -463,19 +463,19 @@ export default function AnalyticsPage() {
             </span>
           </div>
           <div className="flex gap-1 h-8 rounded overflow-hidden">
-            <div 
+            <div
               className="bg-green-500 transition-all cursor-pointer hover:opacity-80"
               style={{ width: `${positivePercent}%` }}
               title={`Positive: ${data.satisfaction?.positive || 0}`}
               onClick={() => showMetricDetails({ type: 'positive', count: data.satisfaction?.positive, percent: positivePercent }, "Positive Feedback")}
             />
-            <div 
+            <div
               className="bg-yellow-500 transition-all cursor-pointer hover:opacity-80"
               style={{ width: `${Math.round(((data.satisfaction?.neutral || 0) / satisfactionScore) * 100)}%` }}
               title={`Neutral: ${data.satisfaction?.neutral || 0}`}
               onClick={() => showMetricDetails({ type: 'neutral', count: data.satisfaction?.neutral }, "Neutral Feedback")}
             />
-            <div 
+            <div
               className="bg-red-500 transition-all cursor-pointer hover:opacity-80"
               style={{ width: `${Math.round(((data.satisfaction?.negative || 0) / satisfactionScore) * 100)}%` }}
               title={`Negative: ${data.satisfaction?.negative || 0}`}
@@ -494,15 +494,15 @@ export default function AnalyticsPage() {
       <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
         <h2 className="text-base md:text-lg font-semibold mb-3">AI vs Training Knowledge Base</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Bar 
-            label="AI Responses" 
-            value={data.aiResponses || 0} 
+          <Bar
+            label="AI Responses"
+            value={data.aiResponses || 0}
             total={totalResponses}
             color="blue"
           />
-          <Bar 
-            label="Training Data" 
-            value={data.trainingResponses || 0} 
+          <Bar
+            label="Training Data"
+            value={data.trainingResponses || 0}
             total={totalResponses}
             color="emerald"
           />
@@ -561,22 +561,22 @@ export default function AnalyticsPage() {
       {/* RESPONSE TIME METRICS */}
       {(data.responseTime?.avg > 0 || data.responseTime?.min > 0 || data.responseTime?.max > 0) && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
-          <MetricCard 
-            title="Avg Response Time" 
+          <MetricCard
+            title="Avg Response Time"
             value={`${data.responseTime?.avg || 0}s`}
             icon="⏱️"
             color="blue"
             onClick={() => showMetricDetails({ avg: data.responseTime?.avg }, "Average Response Time")}
           />
-          <MetricCard 
-            title="Fastest Response" 
+          <MetricCard
+            title="Fastest Response"
             value={`${data.responseTime?.min || 0}s`}
             icon="⚡"
             color="green"
             onClick={() => showMetricDetails({ min: data.responseTime?.min }, "Fastest Response Time")}
           />
-          <MetricCard 
-            title="Slowest Response" 
+          <MetricCard
+            title="Slowest Response"
             value={`${data.responseTime?.max || 0}s`}
             icon="🐢"
             color="red"
@@ -600,7 +600,7 @@ export default function AnalyticsPage() {
                     <span className="text-slate-400">{cat.count} queries</span>
                   </div>
                   <div className="w-full bg-slate-800 h-2 rounded overflow-hidden">
-                    <div 
+                    <div
                       className="bg-purple-500 h-2 rounded transition-all"
                       style={{ width: `${percent}%` }}
                     />
@@ -620,8 +620,8 @@ export default function AnalyticsPage() {
           <div className="space-y-3 max-h-96 overflow-y-auto">
             {data.topQuestions && data.topQuestions.length > 0 ? (
               data.topQuestions.slice(0, 10).map((q, i) => (
-                <div 
-                  key={i} 
+                <div
+                  key={i}
                   className="border-b border-slate-800 pb-2 last:border-0 cursor-pointer hover:bg-slate-800/50 p-2 rounded-lg transition"
                   onClick={() => showMetricDetails(q, `Question: ${q.question}`)}
                 >
@@ -679,43 +679,40 @@ export default function AnalyticsPage() {
               <h3 className="text-lg font-semibold text-white mb-2">Export Analytics Data</h3>
               <p className="text-sm text-slate-400">Choose your preferred export format</p>
             </div>
-            
+
             <div className="space-y-3 mb-5">
               <button
                 onClick={() => setExportFormat("json")}
-                className={`w-full p-3 rounded-lg border transition flex items-center justify-between ${
-                  exportFormat === "json" 
-                    ? "border-emerald-500 bg-emerald-500/10" 
+                className={`w-full p-3 rounded-lg border transition flex items-center justify-between ${exportFormat === "json"
+                    ? "border-emerald-500 bg-emerald-500/10"
                     : "border-slate-700 bg-slate-800"
-                }`}
+                  }`}
               >
                 <span>JSON Format</span>
                 <span className="text-xs text-slate-400">.json</span>
               </button>
               <button
                 onClick={() => setExportFormat("csv")}
-                className={`w-full p-3 rounded-lg border transition flex items-center justify-between ${
-                  exportFormat === "csv" 
-                    ? "border-emerald-500 bg-emerald-500/10" 
+                className={`w-full p-3 rounded-lg border transition flex items-center justify-between ${exportFormat === "csv"
+                    ? "border-emerald-500 bg-emerald-500/10"
                     : "border-slate-700 bg-slate-800"
-                }`}
+                  }`}
               >
                 <span>CSV Format</span>
                 <span className="text-xs text-slate-400">.csv</span>
               </button>
               <button
                 onClick={() => setExportFormat("pdf")}
-                className={`w-full p-3 rounded-lg border transition flex items-center justify-between ${
-                  exportFormat === "pdf" 
-                    ? "border-emerald-500 bg-emerald-500/10" 
+                className={`w-full p-3 rounded-lg border transition flex items-center justify-between ${exportFormat === "pdf"
+                    ? "border-emerald-500 bg-emerald-500/10"
                     : "border-slate-700 bg-slate-800"
-                }`}
+                  }`}
               >
                 <span>PDF Format</span>
                 <span className="text-xs text-slate-400">Print/Save as PDF</span>
               </button>
             </div>
-            
+
             <div className="flex gap-3">
               <button
                 onClick={() => setShowExportModal(false)}
