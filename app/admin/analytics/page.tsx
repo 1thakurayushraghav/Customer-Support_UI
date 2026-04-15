@@ -385,8 +385,8 @@ export default function AnalyticsPage() {
             <button
               onClick={() => setTimeRange("7days")}
               className={`px-3 md:px-4 py-1.5 md:py-2 rounded-lg transition text-sm ${timeRange === "7days"
-                  ? "bg-emerald-500 text-white"
-                  : "text-slate-400 hover:text-white"
+                ? "bg-emerald-500 text-white"
+                : "text-slate-400 hover:text-white"
                 }`}
             >
               7 Days
@@ -394,8 +394,8 @@ export default function AnalyticsPage() {
             <button
               onClick={() => setTimeRange("30days")}
               className={`px-3 md:px-4 py-1.5 md:py-2 rounded-lg transition text-sm ${timeRange === "30days"
-                  ? "bg-emerald-500 text-white"
-                  : "text-slate-400 hover:text-white"
+                ? "bg-emerald-500 text-white"
+                : "text-slate-400 hover:text-white"
                 }`}
             >
               30 Days
@@ -403,8 +403,8 @@ export default function AnalyticsPage() {
             <button
               onClick={() => setTimeRange("all")}
               className={`px-3 md:px-4 py-1.5 md:py-2 rounded-lg transition text-sm ${timeRange === "all"
-                  ? "bg-emerald-500 text-white"
-                  : "text-slate-400 hover:text-white"
+                ? "bg-emerald-500 text-white"
+                : "text-slate-400 hover:text-white"
                 }`}
             >
               All Time
@@ -559,7 +559,7 @@ export default function AnalyticsPage() {
       )}
 
       {/* RESPONSE TIME METRICS */}
-      {(data.responseTime?.avg > 0 || data.responseTime?.min > 0 || data.responseTime?.max > 0) && (
+      {(data.responseTime && (data.responseTime.avg > 0 || data.responseTime.min > 0 || data.responseTime.max > 0)) && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
           <MetricCard
             title="Avg Response Time"
@@ -684,8 +684,8 @@ export default function AnalyticsPage() {
               <button
                 onClick={() => setExportFormat("json")}
                 className={`w-full p-3 rounded-lg border transition flex items-center justify-between ${exportFormat === "json"
-                    ? "border-emerald-500 bg-emerald-500/10"
-                    : "border-slate-700 bg-slate-800"
+                  ? "border-emerald-500 bg-emerald-500/10"
+                  : "border-slate-700 bg-slate-800"
                   }`}
               >
                 <span>JSON Format</span>
@@ -694,8 +694,8 @@ export default function AnalyticsPage() {
               <button
                 onClick={() => setExportFormat("csv")}
                 className={`w-full p-3 rounded-lg border transition flex items-center justify-between ${exportFormat === "csv"
-                    ? "border-emerald-500 bg-emerald-500/10"
-                    : "border-slate-700 bg-slate-800"
+                  ? "border-emerald-500 bg-emerald-500/10"
+                  : "border-slate-700 bg-slate-800"
                   }`}
               >
                 <span>CSV Format</span>
@@ -704,8 +704,8 @@ export default function AnalyticsPage() {
               <button
                 onClick={() => setExportFormat("pdf")}
                 className={`w-full p-3 rounded-lg border transition flex items-center justify-between ${exportFormat === "pdf"
-                    ? "border-emerald-500 bg-emerald-500/10"
-                    : "border-slate-700 bg-slate-800"
+                  ? "border-emerald-500 bg-emerald-500/10"
+                  : "border-slate-700 bg-slate-800"
                   }`}
               >
                 <span>PDF Format</span>
