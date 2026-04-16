@@ -38,18 +38,20 @@ export default function Home() {
   const { theme, toggleTheme } = useTheme();
   const dark = theme === "dark";
 
-  const { token, isLoading } = useAuth();
+  const { token, user, isLoading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (!isLoading) {
-      if (token) {
-        router.push("/chat");
-      } else {
-        router.push("/login");
-      }
+  if (isLoading) return;
+
+  if (token && user) {
+    if (user.role === "admin") {
+      router.replace("/admin/dashboard");
+    } else {
+      router.replace("/chat");
     }
-  }, [token, isLoading]);
+  }
+}, [token, user, isLoading, router]);
 
   if (isLoading) return null;
 
@@ -87,8 +89,8 @@ export default function Home() {
       <button
         onClick={toggleTheme}
         className={`absolute top-4 right-4 z-10 w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95 ${dark
-            ? "bg-slate-800/80 border border-slate-700 text-slate-400 hover:text-emerald-400 hover:border-emerald-500/50"
-            : "bg-white/80 border border-slate-200 text-slate-500 hover:text-emerald-600 hover:border-emerald-300"
+          ? "bg-slate-800/80 border border-slate-700 text-slate-400 hover:text-emerald-400 hover:border-emerald-500/50"
+          : "bg-white/80 border border-slate-200 text-slate-500 hover:text-emerald-600 hover:border-emerald-300"
           } backdrop-blur-sm`}
         title="Toggle theme"
       >
@@ -101,14 +103,14 @@ export default function Home() {
         {/* Badge */}
         <div
           className={`inline-flex items-center gap-2 text-[11px] font-semibold tracking-widest px-4 py-2 rounded-full mb-6 uppercase ${dark
-              ? "bg-emerald-500/10 border border-emerald-500/25 text-emerald-400"
-              : "bg-emerald-50 border border-emerald-200 text-emerald-700"
+            ? "bg-emerald-500/10 border border-emerald-500/25 text-emerald-400"
+            : "bg-emerald-50 border border-emerald-200 text-emerald-700"
             }`}
         >
           <span
             className={`w-1.5 h-1.5 rounded-full animate-pulse ${dark
-                ? "bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]"
-                : "bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.6)]"
+              ? "bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]"
+              : "bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.6)]"
               }`}
           />
           AI-Powered Support · v1.0
@@ -124,8 +126,8 @@ export default function Home() {
           </span>
           <span
             className={`block bg-clip-text text-transparent ${dark
-                ? "bg-gradient-to-r from-emerald-400 via-cyan-400 to-indigo-400"
-                : "bg-gradient-to-r from-emerald-600 via-cyan-600 to-indigo-500"
+              ? "bg-gradient-to-r from-emerald-400 via-cyan-400 to-indigo-400"
+              : "bg-gradient-to-r from-emerald-600 via-cyan-600 to-indigo-500"
               }`}
           >
             Customer Support
@@ -165,8 +167,8 @@ export default function Home() {
           <Link
             href="/register"
             className={`w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl font-semibold text-base transition-all duration-200 hover:-translate-y-0.5 active:scale-95 ${dark
-                ? "bg-slate-800/80 border border-slate-700 text-slate-300 hover:border-emerald-500/50 hover:text-emerald-400"
-                : "bg-white border border-slate-200 text-slate-600 hover:border-emerald-300 hover:text-emerald-700"
+              ? "bg-slate-800/80 border border-slate-700 text-slate-300 hover:border-emerald-500/50 hover:text-emerald-400"
+              : "bg-white border border-slate-200 text-slate-600 hover:border-emerald-300 hover:text-emerald-700"
               } backdrop-blur-sm`}
           >
             Create Account
@@ -184,8 +186,8 @@ export default function Home() {
               {i > 0 && (
                 <div
                   className={`w-px h-8 -ml-8 sm:-ml-12 ${dark
-                      ? "bg-gradient-to-b from-transparent via-slate-600 to-transparent"
-                      : "bg-gradient-to-b from-transparent via-slate-300 to-transparent"
+                    ? "bg-gradient-to-b from-transparent via-slate-600 to-transparent"
+                    : "bg-gradient-to-b from-transparent via-slate-300 to-transparent"
                     }`}
                 />
               )}
