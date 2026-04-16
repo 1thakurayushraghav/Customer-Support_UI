@@ -1,10 +1,8 @@
-// components/ChatBox.tsx - Complete updated version
-
 "use client";
 
 import { useContext, useRef, useEffect, useState, useCallback } from "react";
 import { api } from "@/lib/api";
-import { AuthContext } from "@/context/AuthContext";
+import { useAuth } from "@/context/AuthContext";
 import { useChat } from "@/context/ChatHistoryContext";
 import MessageBubble from "./MessageBubble";
 import { useTheme } from "@/context/ThemeContext";
@@ -24,7 +22,7 @@ type Message = {
 };
 
 export default function ChatBox() {
-  const { token } = useContext(AuthContext);
+  const { token } = useAuth();
   const { messages, addMessage, activeSessionId, refreshSessions, newSession } = useChat();
   const { theme } = useTheme();
   const dark = theme === "dark";

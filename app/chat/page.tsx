@@ -1,11 +1,11 @@
 // app/chat/page.tsx
 "use client";
 
-import { useState, useContext } from "react";
+import { useState, useContext, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import ChatBox from "@/components/ChatBox";
 import { useTheme } from "@/context/ThemeContext";
-import { AuthContext } from "@/context/AuthContext";
+import { useAuth } from "@/context/AuthContext";
 import { useChat } from "@/context/ChatHistoryContext";
 
 type Session = {
@@ -71,7 +71,7 @@ function Sidebar({ open, onClose, dark }: { open: boolean; onClose: () => void; 
     switchSession: (id: string) => void;
     deleteSession: (id: string) => void;
   };
-  const { logout } = useContext(AuthContext);
+  const { logout } = useAuth();
   const router = useRouter();
 
   const now = Date.now();
@@ -202,6 +202,16 @@ export default function ChatPage() {
   const { theme, toggleTheme } = useTheme();
   const dark = theme === "dark";
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { token, isLoading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!isLoading && !token) {
+      router.push("/login");
+    }
+  }, [token, isLoading]);
+
+  if (isLoading) return null;
 
   return (
     <div className={`flex h-full overflow-hidden ${dark ? "bg-slate-950" : "bg-slate-50"}`}>

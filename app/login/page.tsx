@@ -1,18 +1,30 @@
 "use client";
 
-import { useState, useContext } from "react";
+import { useState, useEffect } from "react";
 import { api } from "@/lib/api";
-import { AuthContext } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useAuth } from "@/context/AuthContext";
 
 export default function Login() {
-  const { login } = useContext(AuthContext);
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+
+  const { login, token, user, isLoading } = useAuth();
+
+  useEffect(() => {
+    if (isLoading) return;
+
+    if (token && user) {
+      const destination =
+        user.role === "admin" ? "/admin/dashboard" : "/chat";
+
+      router.replace(destination);
+    }
+  }, [token, user, isLoading, router]);
 
   // Alert states for success & error messages (professional toast-style)
   const [alert, setAlert] = useState<{ type: "success" | "error"; message: string } | null>(null);
@@ -23,50 +35,51 @@ export default function Login() {
     setTimeout(() => setAlert(null), 4000);
   };
 
-  const handleLogin = async () => {
-    // Basic validation
-    if (!email.trim()) {
-      showAlert("error", "Email address is required");
-      return;
-    }
-    if (!password.trim()) {
-      showAlert("error", "Password is required");
-      return;
-    }
+  // app/login/page.tsx mein handleLogin function ko aise modify karo:
 
-    setLoading(true);
-    try {
-      const res = await api.post("/auth/login", { email, password });
+const handleLogin = async () => {
+  if (!email.trim()) {
+    showAlert("error", "Email address is required");
+    return;
+  }
 
-      // Save token & user data in context
-      login(res.data.token, res.data.user);
+  if (!password.trim()) {
+    showAlert("error", "Password is required");
+    return;
+  }
 
-      // Store role for admin panel redirection
-      localStorage.setItem("role", res.data.role);
+  setLoading(true);
 
-      // Show success alert before navigation
-      showAlert("success", `Welcome back, ${res.data.user?.name || "User"}! Redirecting...`);
+  try {
+    const res = await api.post("/auth/login", { email, password });
 
-      // Determine destination
-      const destination = res.data.role === "admin" ? "/admin/dashboard" : "/chat";
+    const { token, user } = res.data;
+    
+    // SIRF login karo - manual redirect MAT karo
+    login(token, user);
+    
+    showAlert(
+      "success",
+      `Welcome back, ${user?.name || "User"}! Redirecting...`
+    );
+    
+    // YEH DELETE KARO (setTimeout wala redirect):
+    // const destination = user?.role === "admin" ? "/admin/dashboard" : "/chat";
+    // setTimeout(() => {
+    //   router.replace(destination);
+    // }, 800);
+    
+    // setLoading(false) bhi hatao - useEffect handle karega
 
-      // Small delay to ensure alert is visible before navigation
-      setTimeout(() => {
-        router.push(destination);
-      }, 800);
+  } catch (err: any) {
+    const errorMessage =
+      err?.response?.data?.message ||
+      "Invalid email or password. Please try again.";
 
-    } catch (err: any) {
-      const errorMessage = err?.response?.data?.message || "Invalid email or password. Please try again.";
-      showAlert("error", errorMessage);
-      setLoading(false);
-    } finally {
-      // Only reset loading if we didn't navigate (error case)
-      // For success, loading stays true until navigation happens
-      if (alert?.type !== "success") {
-        setLoading(false);
-      }
-    }
-  };
+    showAlert("error", errorMessage);
+    setLoading(false);
+  }
+};
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !loading) handleLogin();

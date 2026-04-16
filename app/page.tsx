@@ -1,6 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
 
 function MoonIcon() {
@@ -35,27 +38,38 @@ export default function Home() {
   const { theme, toggleTheme } = useTheme();
   const dark = theme === "dark";
 
+  const { token, isLoading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!isLoading) {
+      if (token) {
+        router.push("/chat");
+      } else {
+        router.push("/login");
+      }
+    }
+  }, [token, isLoading]);
+
+  if (isLoading) return null;
+
   return (
     <main
-      className={`relative min-h-screen w-full flex items-center justify-center overflow-hidden px-4 py-16 sm:py-0 ${
-        dark ? "bg-slate-950" : "bg-slate-50"
-      }`}
+      className={`relative min-h-screen w-full flex items-center justify-center overflow-hidden px-4 py-16 sm:py-0 ${dark ? "bg-slate-950" : "bg-slate-50"
+        }`}
     >
       {/* Ambient orbs */}
       <div
-        className={`absolute top-[-200px] left-[-150px] w-[500px] h-[500px] rounded-full pointer-events-none blur-[100px] ${
-          dark ? "bg-emerald-500/10" : "bg-emerald-400/20"
-        }`}
+        className={`absolute top-[-200px] left-[-150px] w-[500px] h-[500px] rounded-full pointer-events-none blur-[100px] ${dark ? "bg-emerald-500/10" : "bg-emerald-400/20"
+          }`}
       />
       <div
-        className={`absolute bottom-[-100px] right-[-100px] w-[400px] h-[400px] rounded-full pointer-events-none blur-[90px] ${
-          dark ? "bg-teal-500/8" : "bg-teal-400/15"
-        }`}
+        className={`absolute bottom-[-100px] right-[-100px] w-[400px] h-[400px] rounded-full pointer-events-none blur-[90px] ${dark ? "bg-teal-500/8" : "bg-teal-400/15"
+          }`}
       />
       <div
-        className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[350px] rounded-full pointer-events-none blur-[120px] ${
-          dark ? "bg-cyan-500/5" : "bg-cyan-400/10"
-        }`}
+        className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[350px] rounded-full pointer-events-none blur-[120px] ${dark ? "bg-cyan-500/5" : "bg-cyan-400/10"
+          }`}
       />
 
       {/* Dot grid */}
@@ -72,11 +86,10 @@ export default function Home() {
       {/* Theme toggle */}
       <button
         onClick={toggleTheme}
-        className={`absolute top-4 right-4 z-10 w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95 ${
-          dark
+        className={`absolute top-4 right-4 z-10 w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95 ${dark
             ? "bg-slate-800/80 border border-slate-700 text-slate-400 hover:text-emerald-400 hover:border-emerald-500/50"
             : "bg-white/80 border border-slate-200 text-slate-500 hover:text-emerald-600 hover:border-emerald-300"
-        } backdrop-blur-sm`}
+          } backdrop-blur-sm`}
         title="Toggle theme"
       >
         {dark ? <SunIcon /> : <MoonIcon />}
@@ -87,18 +100,16 @@ export default function Home() {
 
         {/* Badge */}
         <div
-          className={`inline-flex items-center gap-2 text-[11px] font-semibold tracking-widest px-4 py-2 rounded-full mb-6 uppercase ${
-            dark
+          className={`inline-flex items-center gap-2 text-[11px] font-semibold tracking-widest px-4 py-2 rounded-full mb-6 uppercase ${dark
               ? "bg-emerald-500/10 border border-emerald-500/25 text-emerald-400"
               : "bg-emerald-50 border border-emerald-200 text-emerald-700"
-          }`}
+            }`}
         >
           <span
-            className={`w-1.5 h-1.5 rounded-full animate-pulse ${
-              dark
+            className={`w-1.5 h-1.5 rounded-full animate-pulse ${dark
                 ? "bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]"
                 : "bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.6)]"
-            }`}
+              }`}
           />
           AI-Powered Support · v1.0
         </div>
@@ -109,16 +120,15 @@ export default function Home() {
           style={{ fontFamily: "'Space Grotesk', sans-serif" }}
         >
           <span className={`block ${dark ? "text-white/90" : "text-slate-900"}`}>
-              Conversational AI
+            Conversational AI
           </span>
           <span
-            className={`block bg-clip-text text-transparent ${
-              dark
+            className={`block bg-clip-text text-transparent ${dark
                 ? "bg-gradient-to-r from-emerald-400 via-cyan-400 to-indigo-400"
                 : "bg-gradient-to-r from-emerald-600 via-cyan-600 to-indigo-500"
-            }`}
+              }`}
           >
-           Customer Support
+            Customer Support
           </span>
           <span className={`block ${dark ? "text-white/90" : "text-slate-900"}`}>
             Platform
@@ -127,9 +137,8 @@ export default function Home() {
 
         {/* Paragraph — properly centered */}
         <p
-          className={`text-sm sm:text-base leading-relaxed mb-8 w-full max-w-sm mx-auto text-center ${
-            dark ? "text-slate-400" : "text-slate-500"
-          }`}
+          className={`text-sm sm:text-base leading-relaxed mb-8 w-full max-w-sm mx-auto text-center ${dark ? "text-slate-400" : "text-slate-500"
+            }`}
         >
           Instant, intelligent support — powered by Raghav-1.0.
           <br className="hidden sm:block" />
@@ -155,11 +164,10 @@ export default function Home() {
           </Link>
           <Link
             href="/register"
-            className={`w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl font-semibold text-base transition-all duration-200 hover:-translate-y-0.5 active:scale-95 ${
-              dark
+            className={`w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl font-semibold text-base transition-all duration-200 hover:-translate-y-0.5 active:scale-95 ${dark
                 ? "bg-slate-800/80 border border-slate-700 text-slate-300 hover:border-emerald-500/50 hover:text-emerald-400"
                 : "bg-white border border-slate-200 text-slate-600 hover:border-emerald-300 hover:text-emerald-700"
-            } backdrop-blur-sm`}
+              } backdrop-blur-sm`}
           >
             Create Account
           </Link>
@@ -175,33 +183,29 @@ export default function Home() {
             <div key={s.label} className="flex items-center gap-8 sm:gap-12">
               {i > 0 && (
                 <div
-                  className={`w-px h-8 -ml-8 sm:-ml-12 ${
-                    dark
+                  className={`w-px h-8 -ml-8 sm:-ml-12 ${dark
                       ? "bg-gradient-to-b from-transparent via-slate-600 to-transparent"
                       : "bg-gradient-to-b from-transparent via-slate-300 to-transparent"
-                  }`}
+                    }`}
                 />
               )}
               <div className="flex flex-col items-center gap-1">
                 <span
-                  className={`text-lg sm:text-2xl font-bold tracking-tight ${
-                    dark ? "text-white/90" : "text-slate-900"
-                  }`}
+                  className={`text-lg sm:text-2xl font-bold tracking-tight ${dark ? "text-white/90" : "text-slate-900"
+                    }`}
                   style={{ fontFamily: "'Space Grotesk', sans-serif" }}
                 >
                   {s.num}
                   <span
-                    className={`text-[0.75em] ${
-                      dark ? "text-emerald-400" : "text-emerald-600"
-                    }`}
+                    className={`text-[0.75em] ${dark ? "text-emerald-400" : "text-emerald-600"
+                      }`}
                   >
                     {s.unit}
                   </span>
                 </span>
                 <span
-                  className={`text-[10px] font-semibold uppercase tracking-widest ${
-                    dark ? "text-slate-500" : "text-slate-400"
-                  }`}
+                  className={`text-[10px] font-semibold uppercase tracking-widest ${dark ? "text-slate-500" : "text-slate-400"
+                    }`}
                 >
                   {s.label}
                 </span>

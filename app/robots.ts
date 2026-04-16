@@ -7,6 +7,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: '/',
       disallow: ['/login', '/register', '/api/*'],
     },
-    sitemap: 'https://conversationalai-for-customer-support.netlify.app/sitemap.xml',
+    sitemap: `${process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"}/sitemap.xml`,
   };
 }

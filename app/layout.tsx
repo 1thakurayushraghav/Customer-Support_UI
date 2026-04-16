@@ -4,7 +4,8 @@ import { ThemeProvider } from "../context/ThemeContext";
 import { ChatHistoryProvider } from "@/context/ChatHistoryContext";
 import "../app/globals.css";
 
-const BASE_URL = "https://conversationalai-for-customer-support.netlify.app";
+const BASE_URL =
+  process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
 
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),

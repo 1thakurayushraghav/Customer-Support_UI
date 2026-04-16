@@ -18,20 +18,27 @@ export default function Dashboard() {
     const fetchStats = async () => {
       try {
         setLoading(true);
-        const res = await api.get("/admin/stats");
-        setStats(res.data);
-        
-        // Fetch recent conversations for activity feed
-        const conversationsRes = await api.get("/admin/conversations?limit=5");
+
+        const [statsRes, conversationsRes] = await Promise.all([
+          api.get("/admin/stats"),
+          api.get("/admin/conversations?limit=5")
+        ]);
+
+        setStats(statsRes.data);
         setRecentActivity(conversationsRes.data?.conversations || []);
+
       } catch (err) {
-        console.error(err);
+        console.error("Dashboard fetch error:", err);
       } finally {
         setLoading(false);
       }
     };
 
     fetchStats();
+
+    const interval = setInterval(fetchStats, 30000); // auto refresh every 30s
+
+    return () => clearInterval(interval);
   }, []);
 
   const statCards = [
@@ -109,7 +116,7 @@ export default function Dashboard() {
             className={`relative overflow-hidden bg-slate-900/50 backdrop-blur-sm border ${stat.borderColor} rounded-xl p-6 cursor-pointer hover:scale-105 transition-all duration-300 group`}
           >
             <div className={`absolute top-0 right-0 w-32 h-32 ${stat.bgColor} rounded-full blur-3xl opacity-50 group-hover:opacity-70 transition-opacity`}></div>
-            
+
             <div className="relative z-10">
               <div className="flex items-center justify-between mb-4">
                 <div className={`w-12 h-12 rounded-lg bg-gradient-to-br ${stat.color} flex items-center justify-center text-2xl shadow-lg`}>
@@ -122,12 +129,12 @@ export default function Dashboard() {
                   </svg>
                 </div>
               </div>
-              
+
               <p className="text-sm text-slate-400 mb-1">{stat.title}</p>
               <h2 className="text-3xl font-bold text-white">
                 {loading ? "..." : stat.value.toLocaleString()}
               </h2>
-              
+
               <div className="mt-4 opacity-0 group-hover:opacity-100 transition-opacity">
                 <p className="text-xs text-slate-500">Click to view details →</p>
               </div>
@@ -199,7 +206,7 @@ export default function Dashboard() {
               </div>
             )}
           </div>
-          
+
           {recentActivity.length > 0 && (
             <button
               onClick={() => router.push("/admin/conversations")}

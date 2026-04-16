@@ -3,7 +3,7 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback, useRef } from "react";
 import { api } from "@/lib/api";
-import { AuthContext } from "./AuthContext";
+import { useAuth } from "./AuthContext";
 
 type Message = {
   id: string;
@@ -33,7 +33,7 @@ interface ChatContextType {
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
 
 export function ChatHistoryProvider({ children }: { children: ReactNode }) {
-  const { token } = useContext(AuthContext);
+  const { token } = useAuth();
   const [sessions, setSessions] = useState<Session[]>([]);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -53,19 +53,19 @@ export function ChatHistoryProvider({ children }: { children: ReactNode }) {
   // Fetch all conversations from backend
   const fetchConversations = useCallback(async () => {
     if (!token) return;
-    
+
     try {
       const response = await api.get("/conversations", {
         headers: { Authorization: `Bearer ${token}` }
       });
-      
+
       const convos = response.data.conversations || [];
       const formattedSessions = convos.map((conv: any) => ({
         id: conv._id,
         title: conv.title || getConversationTitle(conv.messages || []),
         updatedAt: conv.updatedAt,
       }));
-      
+
       setSessions(formattedSessions);
       return formattedSessions;
     } catch (error) {
@@ -77,13 +77,13 @@ export function ChatHistoryProvider({ children }: { children: ReactNode }) {
   // Load single conversation
   const loadConversation = useCallback(async (conversationId: string) => {
     if (!token) return false;
-    
+
     try {
       setLoading(true);
       const response = await api.get(`/conversations/${conversationId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      
+
       const conversation = response.data.conversation;
       const formattedMessages = conversation.messages.map((msg: any, index: number) => ({
         id: msg._id || `${conversationId}_${index}_${Date.now()}`,
@@ -91,7 +91,7 @@ export function ChatHistoryProvider({ children }: { children: ReactNode }) {
         content: msg.content,
         timestamp: new Date(msg.timestamp).getTime(),
       }));
-      
+
       setMessages(formattedMessages);
       setActiveSessionId(conversationId);
       return true;
@@ -106,27 +106,27 @@ export function ChatHistoryProvider({ children }: { children: ReactNode }) {
   // Create new session in backend
   const createNewSession = useCallback(async () => {
     if (!token) return null;
-    
+
     try {
       setLoading(true);
       const response = await api.post("/conversations", {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      
+
       const newConvo = response.data.conversation;
       const newSessionObj: Session = {
         id: newConvo._id,
         title: "New conversation",
         updatedAt: newConvo.updatedAt,
       };
-      
+
       // Add to sessions list
       setSessions(prev => [newSessionObj, ...prev]);
-      
+
       // Clear messages and set active session
       setMessages([]);
       setActiveSessionId(newConvo._id);
-      
+
       console.log("✅ Created new session:", newConvo._id);
       return newConvo._id;
     } catch (error) {
@@ -148,11 +148,11 @@ export function ChatHistoryProvider({ children }: { children: ReactNode }) {
     return newMsg;
   }, []);
 
-// new session async function that returns the new session ID (for chaining after deletion)
+  // new session async function that returns the new session ID (for chaining after deletion)
   const newSession = useCallback(async (): Promise<string | null> => {
-  const id = await createNewSession();
-  return id;
-}, [createNewSession]);
+    const id = await createNewSession();
+    return id;
+  }, [createNewSession]);
 
   // Switch between sessions
   const switchSession = useCallback(async (id: string) => {
@@ -163,16 +163,16 @@ export function ChatHistoryProvider({ children }: { children: ReactNode }) {
   // Delete session
   const deleteSession = useCallback(async (id: string) => {
     if (!token) return;
-    
+
     try {
       await api.delete(`/conversations/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      
+
       // Remove from sessions list
       setSessions(prev => {
         const filtered = prev.filter(s => s.id !== id);
-        
+
         // If we deleted the active session, switch to another one
         if (activeSessionId === id) {
           if (filtered.length > 0) {
@@ -182,7 +182,7 @@ export function ChatHistoryProvider({ children }: { children: ReactNode }) {
             createNewSession();
           }
         }
-        
+
         return filtered;
       });
     } catch (error) {
@@ -193,13 +193,13 @@ export function ChatHistoryProvider({ children }: { children: ReactNode }) {
   // Refresh sessions list
   const refreshSessions = useCallback(async () => {
     const updatedSessions = await fetchConversations();
-    
+
     // If we have an active session, update its title if needed
     if (activeSessionId && updatedSessions.length > 0) {
       const currentSession = updatedSessions.find((s: any) => s.id === activeSessionId);
       if (currentSession && currentSession.title !== "New conversation" && messages.length > 0) {
         // Update the session title in the list
-        setSessions(prev => prev.map(s => 
+        setSessions(prev => prev.map(s =>
           s.id === activeSessionId ? { ...s, title: currentSession.title } : s
         ));
       }
@@ -220,7 +220,7 @@ export function ChatHistoryProvider({ children }: { children: ReactNode }) {
         }
       }
     };
-    
+
     init();
   }, [token]); // Only run when token changes
 
@@ -231,7 +231,7 @@ export function ChatHistoryProvider({ children }: { children: ReactNode }) {
       const timer = setTimeout(() => {
         refreshSessions();
       }, 2000);
-      
+
       return () => clearTimeout(timer);
     }
     isInitialMount.current = false;

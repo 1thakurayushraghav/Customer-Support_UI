@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 
@@ -43,6 +44,8 @@ export default function Conversations() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const limit = 10;
+
+  const router = useRouter();
 
   const fetchConversations = async () => {
     try {
