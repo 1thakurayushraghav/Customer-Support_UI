@@ -26,19 +26,19 @@ type Conversation = {
 export default function Conversations() {
   const [convos, setConvos] = useState<Conversation[]>([]);
   const [expanded, setExpanded] = useState<string | null>(null);
-  
+
   // Search and filters
   const [search, setSearch] = useState("");
   const [filterDate, setFilterDate] = useState("all");
   const [sortBy, setSortBy] = useState("updatedAt");
   const [sortOrder, setSortOrder] = useState("desc");
-  
+
   // Pagination
   const [page, setPage] = useState(1);
   const [pages, setPages] = useState(1);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
-  
+
   // UI states
   const [showFilters, setShowFilters] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -50,15 +50,15 @@ export default function Conversations() {
   const fetchConversations = async () => {
     try {
       setLoading(true);
-      
+
       const res = await api.get(
         `/admin/conversations?page=${page}&limit=${limit}&search=${search}&filterDate=${filterDate}&sortBy=${sortBy}&sortOrder=${sortOrder}`
       );
-      
+
       setConvos(res.data?.conversations || []);
       setPages(res.data?.pages || 1);
       setTotal(res.data?.total || 0);
-      
+
     } catch (err) {
       console.error("Conversation fetch error", err);
       setConvos([]);
@@ -73,7 +73,7 @@ export default function Conversations() {
 
   const handleDelete = async (id: string) => {
     if (!confirm("Are you sure you want to delete this conversation?")) return;
-    
+
     try {
       await api.delete(`/admin/conversations/${id}`);
       fetchConversations();
@@ -126,7 +126,7 @@ export default function Conversations() {
               className="w-full bg-slate-900 border border-slate-700 px-4 py-2.5 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors"
             />
           </div>
-          
+
           {/* Filter Toggle Button */}
           <button
             onClick={() => setShowFilters(!showFilters)}
@@ -163,7 +163,7 @@ export default function Conversations() {
                   <option value="month">Last 30 Days</option>
                 </select>
               </div>
-              
+
               {/* Sort By */}
               <div>
                 <label className="block text-sm text-slate-400 mb-2">Sort By</label>
@@ -177,7 +177,7 @@ export default function Conversations() {
                   <option value="messagesCount">Message Count</option>
                 </select>
               </div>
-              
+
               {/* Sort Order */}
               <div>
                 <label className="block text-sm text-slate-400 mb-2">Sort Order</label>
@@ -191,7 +191,7 @@ export default function Conversations() {
                 </select>
               </div>
             </div>
-            
+
             {/* Reset Filters */}
             <button
               onClick={() => {
@@ -231,7 +231,7 @@ export default function Conversations() {
         {convos?.map((c) => {
           const open = expanded === c._id;
           const msgCount = getMessageCount(c);
-          
+
           return (
             <div
               key={c._id}
@@ -256,24 +256,26 @@ export default function Conversations() {
                         </p>
                       </div>
                     </div>
-                    
+
                     <p className="text-sm text-slate-300 mt-2 line-clamp-2">
                       {lastMessage(c)}
                     </p>
                   </div>
-                  
+
                   <div className="flex flex-col items-end gap-2 ml-4">
-                    <div className="flex items-center gap-3 text-sm">
+                    <div className="flex flex-col sm:flex-row items-end sm:items-center gap-2 sm:gap-3 text-sm">
                       <div className="text-center">
                         <div className="text-slate-400 text-xs">Messages</div>
                         <div className="text-white font-semibold">{msgCount}</div>
                       </div>
                       <div className="text-center">
                         <div className="text-slate-400 text-xs">Updated</div>
-                        <div className="text-white text-xs">{formatDate(c.updatedAt)}</div>
+                        <div className="text-white text-xs break-words text-right">
+                          {formatDate(c.updatedAt)}
+                        </div>
                       </div>
                     </div>
-                    
+
                     <div className="flex gap-2">
                       <button
                         onClick={(e) => {
@@ -285,9 +287,8 @@ export default function Conversations() {
                         Delete
                       </button>
                       <svg
-                        className={`w-5 h-5 text-slate-400 transition-transform ${
-                          open ? "rotate-180" : ""
-                        }`}
+                        className={`w-5 h-5 text-slate-400 transition-transform ${open ? "rotate-180" : ""
+                          }`}
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -312,16 +313,14 @@ export default function Conversations() {
                       c.messages.map((m, i) => (
                         <div
                           key={i}
-                          className={`flex ${
-                            m.role === "user" ? "justify-end" : "justify-start"
-                          }`}
+                          className={`flex ${m.role === "user" ? "justify-end" : "justify-start"
+                            }`}
                         >
                           <div
-                            className={`px-4 py-2 rounded-lg max-w-[70%] ${
-                              m.role === "user"
+                            className={`px-4 py-2 rounded-lg max-w-[70%] ${m.role === "user"
                                 ? "bg-blue-600 text-white"
                                 : "bg-slate-800 text-slate-200"
-                            }`}
+                              }`}
                           >
                             <div className="text-xs opacity-75 mb-1">
                               {m.role === "user" ? "User" : "Assistant"}
@@ -364,7 +363,7 @@ export default function Conversations() {
           >
             ← Previous
           </button>
-          
+
           <div className="flex items-center gap-2">
             {Array.from({ length: Math.min(5, pages) }, (_, i) => {
               let pageNum;
@@ -377,23 +376,22 @@ export default function Conversations() {
               } else {
                 pageNum = page - 2 + i;
               }
-              
+
               return (
                 <button
                   key={pageNum}
                   onClick={() => setPage(pageNum)}
-                  className={`w-10 h-10 rounded-lg transition-colors ${
-                    page === pageNum
+                  className={`w-10 h-10 rounded-lg transition-colors ${page === pageNum
                       ? "bg-blue-600 text-white"
                       : "bg-slate-800 text-slate-300 hover:bg-slate-700"
-                  }`}
+                    }`}
                 >
                   {pageNum}
                 </button>
               );
             })}
           </div>
-          
+
           <button
             disabled={page === pages}
             onClick={() => setPage(page + 1)}
